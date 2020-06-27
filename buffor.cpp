@@ -8,22 +8,18 @@ Buffer::Buffer(char l)  {
     label=l;
 };
 Buffer::~Buffer() {
-    std::unique_lock<std::mutex> lock(my_mutex);
     while(head){
         Message * del = this->pop();
         delete del;
     }
-    lock.unlock();
 }
 Message * Buffer::pop() {
     enter();
-    std::unique_lock<std::mutex> lock(my_mutex);
     if(head == nullptr){
         std::time_t result = std::time(nullptr);
         std::cout << result << ": Kolejka "<< label << " jest pusta" << std::endl << std::endl;
         lock.unlock();
         wait(cons);
-        lock.lock();
     }
     Message * msg;
     msg = head;
@@ -35,7 +31,6 @@ Message * Buffer::pop() {
     std::time_t result = std::time(nullptr);
     std::cout << result << " odczytano: " << msg->text << " o priorytecie: " << msg->priority
     <<" z kolejki " << label <<std::endl << std::endl;
-    lock.unlock();
     signal(prod);
     leave();
     return msg;
@@ -97,14 +92,11 @@ void Buffer :: push_spec(Message * msg){
 }
 
 void Buffer :: push(Message * msg){
-    std::unique_lock<std::mutex> lock(my_mutex);
     enter();
     if(buffer_occupancy == SIZE){
         std::time_t result = std::time(nullptr);
         std::cout << result << ": Kolejka "<< label <<" jest pelna" << std::endl << std::endl;
-        lock.unlock();
         wait(prod);
-        lock.lock();
     }
     std::time_t result = std::time(nullptr);
     std::cout << result << " dodano: " << msg->text << " o priorytecie "<< msg->priority << " do kolejki "<< label
@@ -119,7 +111,6 @@ void Buffer :: push(Message * msg){
         push_spec(msg);
     }
     buffer_occupancy++;
-    lock.unlock();
     signal(cons);
     leave();
 };
