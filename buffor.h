@@ -20,7 +20,6 @@ class Buffer : private Monitor {
 private:
     Message *head, *pri_tail, *spec_tail, *tail;
     Condition prod, cons;
-    std::mutex my_mutex;
 
 public:
     int buffer_occupancy;
